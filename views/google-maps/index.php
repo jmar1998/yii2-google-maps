@@ -56,7 +56,7 @@ GoogleAsset::register($this);
                 <div class="col-12">
                     <?= Html::button('Planear ruta', ['class' => 'btn btn-primary', 'id' => "generate"]) ?>
                     <?= Html::submitButton('Guardar', ['class' => 'btn btn-success']) ?>
-                    <?= Html::a('Nueva', "routes" , ['class' => 'btn btn-dark']) ?>
+                    <?= Html::a('Nueva', "/google-maps/routes" , ['class' => 'btn btn-dark']) ?>
                 </div>
             </div>
         <?php ActiveForm::end() ?>
