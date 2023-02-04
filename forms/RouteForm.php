@@ -82,6 +82,7 @@ class RouteForm extends \yii\base\Model
                 }
             ])
             ->one();
+        $this->id = $route->id;
         $this->name = $route->name;
         $this->waypoints = json_encode(array_map(function(array $wayPoint){
             return [

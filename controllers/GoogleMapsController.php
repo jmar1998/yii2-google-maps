@@ -3,6 +3,8 @@
 namespace app\controllers;
 
 use app\forms\RouteForm;
+use app\models\Route;
+use yii\helpers\ArrayHelper;
 use yii\web\Controller;
 
 /**
@@ -29,13 +31,15 @@ class GoogleMapsController extends Controller
     public function actionRoutes(?int $route = null)
     {
         $googleRoute = new RouteForm();
+        $existingRoutes = ArrayHelper::map(Route::find()->asArray()->all(), 'id', 'name');
         if($this->request->isPost && $googleRoute->load($this->request->post()) && $googleRoute->save($route)){
             return $this->redirect(["routes", "route" => $googleRoute->id]);
         }
         // Load route if exists into the form
         $googleRoute->loadRoute($route);
         return $this->render('index', [
-            "routeForm" => $googleRoute
+            "routeForm" => $googleRoute,
+            "existingRoutes" => $existingRoutes
         ]);
     }
 }

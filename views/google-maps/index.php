@@ -1,16 +1,20 @@
 <?php
 
 use app\assets\GoogleAsset;
+use app\forms\RouteForm;
+use yii\helpers\Url;
 use yii\bootstrap5\{
     ActiveForm,
     Html
 };
 
 GoogleAsset::register($this);
-
+/**
+ * @var RouteForm $routeForm
+ */
 ?>
 <div class="row h-50">
-    <div class="col-2 ">
+    <div class="col-2">
         <div class="text-center">
             <div class="badge bg-primary text-wrap text-center" style="width: 6rem;">
                 Recorrido
@@ -19,10 +23,10 @@ GoogleAsset::register($this);
         <ul id="way-points" class="list-group mt-2">
         </ul>
     </div>
-    <div class="col-8">
+    <div class="col-7">
         <div id="map" class="google-map h-100"></div>
     </div>
-    <div class="col-2">
+    <div class="col-3">
         <div class="text-center">
             <div class="badge bg-primary text-wrap text-center" style="width: 6rem;">
                 Ruta
@@ -33,15 +37,26 @@ GoogleAsset::register($this);
             'id' => 'route-form',
             'options' => ['class' => 'form-horizontal'],
         ]) ?>
+            <?php if(!empty($existingRoutes)) : ?>
+            <div class="mb-3">
+                <label for="formGroupExampleInput" class="form-label">Routas existentes</label>
+                <?= Html::dropDownList("routes_list", $routeForm->id, $existingRoutes, [
+                    "class" => "form-select",
+                    "id" => "route-changer",
+                    "prompt" => "Selecciona una ruta"
+                ])?>
+            </div>
+            <?php endif; ?>
             <?= $form->field($routeForm, 'name') ?>
             <?= $form->field($routeForm, 'waypoints')->hiddenInput([
                 "id" => "waypoints"
             ])->label(false) ?>
             <div id="way-points"></div>
             <div class="form-group">
-                <div class="col-lg-offset-1 col-lg-11">
+                <div class="col-12">
                     <?= Html::button('Planear ruta', ['class' => 'btn btn-primary', 'id' => "generate"]) ?>
                     <?= Html::submitButton('Guardar', ['class' => 'btn btn-success']) ?>
+                    <?= Html::a('Nueva', "routes" , ['class' => 'btn btn-dark']) ?>
                 </div>
             </div>
         <?php ActiveForm::end() ?>
@@ -58,6 +73,9 @@ GoogleAsset::register($this);
             googleMap.route.wayPoints = wayPoints;
             googleMap.generateRoute();
         }
+        $("#route-changer").on("change", function(){
+            window.location.href = `<?= Url::current(["route" => null])?>?route=${$(this).val()}`;
+        });
         $("#generate").on("click", () => {
             if (googleMap.route.wayPoints.length < 2) {
                 alert("Es necesario seleccionar minimo 2 puntos para generar na ruta");

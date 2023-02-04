@@ -32,5 +32,6 @@ phpunit.phar
 tests/_output/*
 tests/_support/_generated
 
-/web/assets
+/web/assets/*
+!/web/assets/.gitkeep
 

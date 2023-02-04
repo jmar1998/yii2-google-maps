@@ -11,9 +11,10 @@ services:
       expose:
         - 5432:5432
   php:
+    image: yiisoftware/yii2-php:8.2-apache
     links:
       - db
-    image: yiisoftware/yii2-php:8.2-apache
+    entrypoint: init.sh
     volumes:
       - ./:/app:rw
     ports:
