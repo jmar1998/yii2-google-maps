@@ -1,0 +1,16 @@
+.distance-bar {
+    display: inline-block;
+    width: 5px;
+    height: 50px;
+    background: black;
+}
+.distance-text {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    top: 15px;
+}
+.remove-marker{
+    position: absolute;
+    right: 0;
+}

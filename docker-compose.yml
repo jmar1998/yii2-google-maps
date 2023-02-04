@@ -1,0 +1,20 @@
+services:
+  db:
+      image: postgres
+      restart: always
+      environment:
+        POSTGRES_PASSWORD: workana
+        POSTGRES_USER: workana
+        POSTGRES_DB : google_maps_project
+      ports:
+        - 5432:5432
+      expose:
+        - 5432:5432
+  php:
+    links:
+      - db
+    image: yiisoftware/yii2-php:8.2-apache
+    volumes:
+      - ./:/app:rw
+    ports:
+      - '8000:80'
