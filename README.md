@@ -16,4 +16,5 @@ Para instrucciones de instalación se puede consultar el link siguiente : [Docke
 
 ***Adicional***
 > Para visualizar el esquema de la base de datos y algunas informaciones sobre el diseño, puede ver el archivo database.png
+
 ![Database schema](database.png)
