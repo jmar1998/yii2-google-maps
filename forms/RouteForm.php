@@ -61,6 +61,7 @@ class RouteForm extends \yii\base\Model
     }
     public function load($data, $formName = null)
     {
+        // On load we need to parse the data from post into the an array
         $wayPoints = ArrayHelper::getValue($data, "{$this->formName()}.waypoints");
         ArrayHelper::setValue($data, "{$this->formName()}.waypoints", json_decode($wayPoints, true));
         return parent::load($data, $formName);
@@ -84,6 +85,7 @@ class RouteForm extends \yii\base\Model
             ->one();
         $this->id = $route->id;
         $this->name = $route->name;
+        // Load waypoints into a valid format for google maps
         $this->waypoints = json_encode(array_map(function(array $wayPoint){
             return [
                 "lat" => (float) $wayPoint['lat'],
@@ -102,6 +104,7 @@ class RouteForm extends \yii\base\Model
                 throw new Exception("Error saving route model");
             }
             if($route){
+                // If is performed a save we delete the waypoints related
                 Waypoint::deleteAll(["route_id" => $route]);
             }
             /** @var Waypoint|null */
@@ -115,6 +118,7 @@ class RouteForm extends \yii\base\Model
                     "previous_waypoint" => $previousWaypoint->id ?? null
                 ]);
                 $routeModel->link('waypoints', $wayPointModel);
+                // Keep the previous reference to set previous_waypoint
                 $previousWaypoint = $wayPointModel;
             }
             $transaction->commit();

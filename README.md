@@ -18,3 +18,9 @@ Para instrucciones de instalación se puede consultar el link siguiente : [Docke
 > Para visualizar el esquema de la base de datos y algunas informaciones sobre el diseño, puede ver el archivo database.png
 
 ![Database schema](database.png)
+
+***Como es el proceso de inicialización de la aplicación ?***
+> Basicamente son ejecutados los siguientes procesos
+1. Composer install : Para instalar dependencias
+2. Se corrigen permisos de directorios criticos para Yii2
+3. Son ejecutadas migrations : Para crear la base de datos necesaria
