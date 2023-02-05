@@ -24,3 +24,9 @@ Para instrucciones de instalación se puede consultar el link siguiente : [Docke
 1. Composer install : Para instalar dependencias
 2. Se corrigen permisos de directorios criticos para Yii2
 3. Son ejecutadas migrations : Para crear la base de datos necesaria
+
+***Archivos clave en la aplicación***
+1. ./web/libraries/google-maps/google-maps.js
+> En esta libreria son preparados todos los datos, asi como tambien la renderización y normalización de los datos a partir de la API de google maps
+2. ./forms/RouteForm.php
+> En este archivo son transformados los datos que proceden a partir de la libreria ./web/libraries/google-maps/google-maps.js, para algo manejable en los modelos/base de datos, a su vez son ejecutados procesos para simplificar el proceso de creación y actualización de las rutas
