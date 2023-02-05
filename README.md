@@ -13,3 +13,7 @@ Para instrucciones de instalación se puede consultar el link siguiente : [Docke
 
 ***Como acceder a la aplicacion
 > Puedes acceder directamente con en link : [Abrir la app](http://localhost)
+
+***Adicional***
+> Para visualizar el esquema de la base de datos y algunas informaciones sobre el diseño, puede ver el archivo database.png
+![Database schema](database.png)
