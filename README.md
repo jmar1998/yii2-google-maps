@@ -1,9 +1,10 @@
 ### Aplicacion de prueba YII2 google maps
 ---
 ***Que necesitas para correr la aplicacion?***
-
-Solo es necesario tener docker instalado.
-
+1) Ejecutar o comando
+> `git clone https://github.com/jmar1998/yii2-google-maps.git`
+2) Definir las credenciales para google maps en el archivo config/params.php
+3) Es necesario tener docker instalado
 Para instrucciones de instalación se puede consultar el link siguiente : [Docker installation](https://docs.docker.com/engine/install)
 
 ***Como iniciar la aplicacion?***
