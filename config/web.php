@@ -1,12 +1,10 @@
 <?php
 
-use app\components\GoogleMaps;
-
 $params = require __DIR__ . '/params.php';
 $db = require __DIR__ . '/db.php';
 
 $config = [
-    'defaultRoute' => 'google-maps/routes',
+    'defaultRoute' => 'site/index',
     'id' => 'basic',
     'basePath' => dirname(__DIR__),
     'bootstrap' => ['log'],
