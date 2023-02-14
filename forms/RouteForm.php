@@ -92,6 +92,7 @@ class RouteForm extends \yii\base\Model
                 "lng" => (float) $wayPoint['lng'],
             ];
         }, $route->waypoints));
+        // Decompress when is needed
         $this->sourceRequests = empty($route['source_requests']) ? null : gzuncompress(base64_decode($route['source_requests']));
     }
     public function save(?int $route){
@@ -100,6 +101,7 @@ class RouteForm extends \yii\base\Model
             $routeModel = $route ? Route::findOne($route) : new Route();
             $routeModel->setAttributes([
                 "name" => $this->name,
+                // We compress the data because this could be a huge string
                 "source_requests" => base64_encode(gzcompress($this->sourceRequests, 9))
             ]);
             if(!$routeModel->save()){
