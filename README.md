@@ -44,5 +44,5 @@ Para instrucciones de instalación se puede consultar el link siguiente : [Docke
 
 ***Como actualizar la base de datos***
 > Ejecutando este comando puedes actualizar la estructura de la base de datos
-> `echo "y" | sudo docker compose exec php ./yii migrate/up`
+> `echo "y" | docker compose exec php ./yii migrate/up`
 - Tambien puedes ejecutar `docker compose down && docker compose up`;
