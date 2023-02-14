@@ -13,6 +13,7 @@ use yii\db\{
     ActiveQuery,
     Expression
 };
+use yii\web\NotFoundHttpException;
 
 /**
  * Form class for routes
@@ -33,11 +34,15 @@ class RouteForm extends \yii\base\Model
      */
     public $name;
     /**
-     * Waypoints of the route
-     * This is a attribute that saves the coordinates, address and distance information of each waypoint
-     * @var array
+     * Original requests
+     * @var string
      */
-    public $waypoints;
+    public $sourceRequests;
+    /**
+     * Directions
+     * @var string
+     */
+    public $directions;
     /**
      * {@inheritdoc}
      */
@@ -46,7 +51,7 @@ class RouteForm extends \yii\base\Model
         return [
             [['name'], 'required'],
             [['name'], 'string'],
-            [['waypoints'], 'safe']
+            [['sourceRequests', 'directions'], 'safe']
         ];
     }
 
@@ -58,13 +63,6 @@ class RouteForm extends \yii\base\Model
         return [
             'name' => 'Nombre',
         ];
-    }
-    public function load($data, $formName = null)
-    {
-        // On load we need to parse the data from post into the an array
-        $wayPoints = ArrayHelper::getValue($data, "{$this->formName()}.waypoints");
-        ArrayHelper::setValue($data, "{$this->formName()}.waypoints", json_decode($wayPoints, true));
-        return parent::load($data, $formName);
     }
     public function loadRoute(?int $route){
         if($route === null){
@@ -83,22 +81,28 @@ class RouteForm extends \yii\base\Model
                 }
             ])
             ->one();
+        if (empty($route)) {
+            throw new NotFoundHttpException("The requested route don't exists!");
+        }
         $this->id = $route->id;
         $this->name = $route->name;
-        // Load waypoints into a valid format for google maps
-        $this->waypoints = json_encode(array_map(function(array $wayPoint){
+        $this->directions = json_encode(array_map(function(array $wayPoint){
             return [
                 "lat" => (float) $wayPoint['lat'],
                 "lng" => (float) $wayPoint['lng'],
             ];
         }, $route->waypoints));
+        // Decompress when is needed
+        $this->sourceRequests = empty($route['source_requests']) ? null : gzuncompress(base64_decode($route['source_requests']));
     }
     public function save(?int $route){
         $transaction = Yii::$app->db->beginTransaction();
         try {
             $routeModel = $route ? Route::findOne($route) : new Route();
             $routeModel->setAttributes([
-                "name" => $this->name
+                "name" => $this->name,
+                // We compress the data because this could be a huge string
+                "source_requests" => base64_encode(gzcompress($this->sourceRequests, 9))
             ]);
             if(!$routeModel->save()){
                 throw new Exception("Error saving route model");
@@ -109,7 +113,7 @@ class RouteForm extends \yii\base\Model
             }
             /** @var Waypoint|null */
             $previousWaypoint = null;
-            foreach ($this->waypoints as $wayPoint) {
+            foreach (json_decode($this->directions, true) as $wayPoint) {
                 $wayPointModel = new Waypoint();
                 $wayPointModel->setAttributes([
                     "address" => $wayPoint['address'],

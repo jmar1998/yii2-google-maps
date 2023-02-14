@@ -8,7 +8,8 @@ use Yii;
  * This is the model class for table "route".
  *
  * @property int $id
- * @property string $name
+ * @property string|null $name
+ * @property string|null $source_requests
  *
  * @property Waypoint[] $waypoints
  */
@@ -28,8 +29,8 @@ class Route extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['name'], 'required'],
-            [['name'], 'string'],
+            [['source_requests'], 'safe'],
+            [['name'], 'string', 'max' => 255],
         ];
     }
 
@@ -41,6 +42,7 @@ class Route extends \yii\db\ActiveRecord
         return [
             'id' => 'ID',
             'name' => 'Name',
+            'source_requests' => 'Source Requests',
         ];
     }
 

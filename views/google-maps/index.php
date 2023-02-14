@@ -13,14 +13,14 @@ GoogleAsset::register($this);
  * @var RouteForm $routeForm
  */
 ?>
-<div class="row h-50">
-    <div class="col-2">
+<div class="row h-75">
+    <div class="col-2 h-100">
         <div class="text-center">
             <div class="badge bg-primary text-wrap text-center" style="width: 6rem;">
                 Recorrido
             </div>
         </div>
-        <ul id="way-points" class="list-group mt-2">
+        <ul id="way-points" class="list-group mt-2 h-100 overflow-auto" style="max-height: calc(100% - 2em);">
         </ul>
     </div>
     <div class="col-7">
@@ -48,8 +48,11 @@ GoogleAsset::register($this);
             </div>
             <?php endif; ?>
             <?= $form->field($routeForm, 'name') ?>
-            <?= $form->field($routeForm, 'waypoints')->hiddenInput([
-                "id" => "waypoints"
+            <?= $form->field($routeForm, 'directions')->hiddenInput([
+                "id" => "directions"
+            ])->label(false) ?>
+            <?= $form->field($routeForm, 'sourceRequests')->hiddenInput([
+                "id" => "source-requests"
             ])->label(false) ?>
             <div id="way-points"></div>
             <div class="form-group">
@@ -64,14 +67,15 @@ GoogleAsset::register($this);
 </div>
 <script>
     function init() {
-        const wayPoints = $("#waypoints").val() ? JSON.parse($("#waypoints").val()) : [];
+        const directions = $("#directions").val() ? JSON.parse($("#directions").val()) : [];
+        const sourceRequests = $("#source-requests").val() ? JSON.parse($("#source-requests").val()) : [];
         const googleMap = new GoogleMap({
             mapElement : document.getElementById("map"),
             markersElement : document.getElementById("way-points"),
         });
-        if (wayPoints) {
-            googleMap.route.wayPoints = wayPoints;
-            googleMap.generateRoute();
+        if (directions) {
+            googleMap.route.wayPoints = directions;
+            googleMap.generateRoute(sourceRequests);
         }
         $("#route-changer").on("change", function(){
             window.location.href = `<?= Url::current(["route" => null])?>?route=${$(this).val()}`;
@@ -84,12 +88,14 @@ GoogleAsset::register($this);
             googleMap.generateRoute();
         });
         $("#route-form").on("beforeSubmit", function(e){
-            if (googleMap.routeDrawer.directions === undefined) {
+            const googleData = googleMap.getData();
+            if (googleData.directions.length <= 0) {
                 alert("Necesita planear la ruta antes de guardarla");
                 return false;
             }
-           $("#waypoints").val(JSON.stringify(googleMap.getData()));
-           return true;
+            $("#directions").val(JSON.stringify(googleData.directions));
+            $("#source-requests").val(JSON.stringify(googleData.sourceRequests));
+            return true;
         });
     }
 </script>
