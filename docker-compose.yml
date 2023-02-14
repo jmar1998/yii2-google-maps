@@ -18,4 +18,4 @@ services:
     volumes:
       - ./:/app:rw
     ports:
-      - '80:80'
+      - '90:80'

@@ -31,3 +31,12 @@ Para instrucciones de instalación se puede consultar el link siguiente : [Docke
 > En esta libreria son preparados todos los datos, asi como tambien la renderización y normalización de los datos a partir de la API de google maps
 2. ./forms/RouteForm.php
 > En este archivo son transformados los datos que proceden a partir de la libreria ./web/libraries/google-maps/google-maps.js, para algo manejable en los modelos/base de datos, a su vez son ejecutados procesos para simplificar el proceso de creación y actualización de las rutas
+
+***Cambios Relevantes V2***
+1. Hubo una reformulación en el codigo para añadir la posibilidad de agregar mas de 26 paradas
+- La API Google maps no permite crear rutas con mas de 24 paradas (24 + 2 [origen y destino])
+- Para sobrepasar este problema se hacen varios pedidos y se juntan en el mapa
+2. Simplificado la manera de renderizar los marcadores
+3. Corregido el delete de un marcador
+4. Para disminuir la cantidad de pedidos se guarda en la base de datos el pedido original (comprimido)
+- En nuestro caso es un array de pedidos para permitir varias rutas de +26 paradas

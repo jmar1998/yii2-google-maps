@@ -12,7 +12,7 @@ class m230214_004211_add_source_request_to_route extends Migration
      */
     public function safeUp()
     {
-        $this->addColumn("route", "source_requests", $this->json()->null());
+        $this->addColumn("route", "source_requests", $this->text()->null());
     }
 
     /**

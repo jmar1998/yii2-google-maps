@@ -1,8 +1,12 @@
 class GoogleMap {
     route = {
+        // Name of the route
         name: null,
+        // List of waypoints
         wayPoints: [],
+        // Buffer of objects to cleanup
         objects : [],
+        // Array of requests
         requests : []
     };
     constructor(options) {
@@ -68,7 +72,7 @@ class GoogleMap {
                 wayPoints[index] = [];
             };
             const element = sourceWayPoints[key];
-            wayPoints[index].push(element);
+            wayPoints[index].push(this.toJSON(element));
             counter++;
         }
         return wayPoints;
@@ -84,6 +88,8 @@ class GoogleMap {
         this.route.wayPoints = [];
         this.markerDirections = [];
         this.route.requests = existingDirections;
+        const renderers = [];
+        console.log(wayPoints, this.chunkWayPoints(wayPoints));
         this.chunkWayPoints(wayPoints).reduce(async (previous, chunkWayPoints, index) => {
             const previousRequest = await previous;
             const startPoint = previousRequest.request.destination !== undefined ? previousRequest.request.destination.location : chunkWayPoints[0];
@@ -94,9 +100,9 @@ class GoogleMap {
             let directions = null;
             const renderer = new google.maps.DirectionsRenderer({
                 draggable: true,
-                map : this.map,
-                suppressMarkers: true
+                map : this.map
             });
+            renderers.push(renderer);
             this.route.objects.push(renderer);
             if (this.route.requests[index] !== undefined) {
                 directions = this.route.requests[index];
@@ -112,28 +118,40 @@ class GoogleMap {
             }
             renderer.setDirections(directions);
             this.markerDirections = this.markerDirections.concat(directions.routes[0].legs);
-            this.route.wayPoints.push(this.toJSON(directions.request.origin.location));
+            if(previousRequest.request.destination === undefined){
+                this.route.wayPoints.push(this.toJSON(directions.request.origin.location));
+            }
             this.route.wayPoints = this.route.wayPoints.concat(directions.request.waypoints.map((waypoint) => this.toJSON(waypoint.location.location)));
             this.route.wayPoints.push(this.toJSON(directions.request.destination.location));
             return directions;
         }, Promise.resolve({
             request : {}
         })).then(() => {
-            const renderedPoints = [];
-            this.route.wayPoints.forEach((wayPoint, index) => {
-                // Hide markers on the same spot, this could happens for routes with more than 26 waypoints
-                const locationIndex = `${wayPoint.lat}-${wayPoint.lng}`;
-                if (renderedPoints.includes(locationIndex)) {
-                    return;
-                }
-                this.route.objects.push(this.renderMapMarker(wayPoint, index));
-                renderedPoints.push(locationIndex);
+            let markerIndex = 1;
+            renderers.forEach((renderer) => {
+                // Because there is no current way to check if the markers are ready
+                // We manually check when the markers are loaded
+                // This is done, this way to the markers be more accurate
+                const markersChecker = setInterval(() => {
+                    if(renderer.h && renderer.h.markers){
+                        clearInterval(markersChecker);
+                        renderer.h.markers.forEach((marker, index) => {
+                            marker.setIcon(null);
+                            //When this condition is fullfilled means that is a segment from another request
+                            if(markerIndex > 1 && index == 0){
+                                marker.setVisible(false);
+                                return;
+                            }
+                            marker.setLabel({
+                                text : `${markerIndex++}`,
+                                color : 'white'
+                            });
+                        });
+                    }
+                }, 0);
             });
             this.renderMarkers();
-        }).catch(() => {
-            console.log(arguments);
-            alert("Ruta invalida intente nuevamente!");
-        });
+        })
     }
     toJSON(element){
         if (element.constructor.name !== 'Object') return element.toJSON();
@@ -181,9 +199,10 @@ class GoogleMap {
             deleteButton
                 .addClass("btn btn-danger btn-sm remove-marker")
                 .on("click", () => {
-                    this.route.wayPoints = this.route.wayPoints.filter((wayPoint) => {
-                        return wayPoint.lat != route.location.lat || wayPoint.lng != route.location.lng;
-                    });
+                    console.log(this.route.wayPoints, route.location);
+                    this.route.wayPoints = directions.filter((wayPoint) => {
+                        return wayPoint.location.lat != route.location.lat || wayPoint.location.lng != route.location.lng;
+                    }).map(wayPoint => wayPoint.location);
                     this.generateRoute();
                 });
             placeItem

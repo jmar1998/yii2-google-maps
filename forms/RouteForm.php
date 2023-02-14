@@ -13,6 +13,7 @@ use yii\db\{
     ActiveQuery,
     Expression
 };
+use yii\web\NotFoundHttpException;
 
 /**
  * Form class for routes
@@ -33,11 +34,14 @@ class RouteForm extends \yii\base\Model
      */
     public $name;
     /**
-     * Waypoints of the route
-     * This is a attribute that saves the coordinates, address and distance information of each waypoint
-     * @var array
+     * Original requests
+     * @var string
      */
     public $sourceRequests;
+    /**
+     * Directions
+     * @var string
+     */
     public $directions;
     /**
      * {@inheritdoc}
@@ -77,6 +81,9 @@ class RouteForm extends \yii\base\Model
                 }
             ])
             ->one();
+        if (empty($route)) {
+            throw new NotFoundHttpException("The requested route don't exists!");
+        }
         $this->id = $route->id;
         $this->name = $route->name;
         $this->directions = json_encode(array_map(function(array $wayPoint){
@@ -85,7 +92,7 @@ class RouteForm extends \yii\base\Model
                 "lng" => (float) $wayPoint['lng'],
             ];
         }, $route->waypoints));
-        $this->sourceRequests = $route['source_requests'];
+        $this->sourceRequests = empty($route['source_requests']) ? null : gzuncompress(base64_decode($route['source_requests']));
     }
     public function save(?int $route){
         $transaction = Yii::$app->db->beginTransaction();
@@ -93,7 +100,7 @@ class RouteForm extends \yii\base\Model
             $routeModel = $route ? Route::findOne($route) : new Route();
             $routeModel->setAttributes([
                 "name" => $this->name,
-                "source_requests" => $this->sourceRequests
+                "source_requests" => base64_encode(gzcompress($this->sourceRequests, 9))
             ]);
             if(!$routeModel->save()){
                 throw new Exception("Error saving route model");
