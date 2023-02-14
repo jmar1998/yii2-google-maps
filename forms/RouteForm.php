@@ -37,7 +37,8 @@ class RouteForm extends \yii\base\Model
      * This is a attribute that saves the coordinates, address and distance information of each waypoint
      * @var array
      */
-    public $waypoints;
+    public $sourceRequests;
+    public $directions;
     /**
      * {@inheritdoc}
      */
@@ -46,7 +47,7 @@ class RouteForm extends \yii\base\Model
         return [
             [['name'], 'required'],
             [['name'], 'string'],
-            [['waypoints'], 'safe']
+            [['sourceRequests', 'directions'], 'safe']
         ];
     }
 
@@ -58,13 +59,6 @@ class RouteForm extends \yii\base\Model
         return [
             'name' => 'Nombre',
         ];
-    }
-    public function load($data, $formName = null)
-    {
-        // On load we need to parse the data from post into the an array
-        $wayPoints = ArrayHelper::getValue($data, "{$this->formName()}.waypoints");
-        ArrayHelper::setValue($data, "{$this->formName()}.waypoints", json_decode($wayPoints, true));
-        return parent::load($data, $formName);
     }
     public function loadRoute(?int $route){
         if($route === null){
@@ -85,20 +79,21 @@ class RouteForm extends \yii\base\Model
             ->one();
         $this->id = $route->id;
         $this->name = $route->name;
-        // Load waypoints into a valid format for google maps
-        $this->waypoints = json_encode(array_map(function(array $wayPoint){
+        $this->directions = json_encode(array_map(function(array $wayPoint){
             return [
                 "lat" => (float) $wayPoint['lat'],
                 "lng" => (float) $wayPoint['lng'],
             ];
         }, $route->waypoints));
+        $this->sourceRequests = $route['source_requests'];
     }
     public function save(?int $route){
         $transaction = Yii::$app->db->beginTransaction();
         try {
             $routeModel = $route ? Route::findOne($route) : new Route();
             $routeModel->setAttributes([
-                "name" => $this->name
+                "name" => $this->name,
+                "source_requests" => $this->sourceRequests
             ]);
             if(!$routeModel->save()){
                 throw new Exception("Error saving route model");
@@ -109,7 +104,7 @@ class RouteForm extends \yii\base\Model
             }
             /** @var Waypoint|null */
             $previousWaypoint = null;
-            foreach ($this->waypoints as $wayPoint) {
+            foreach (json_decode($this->directions, true) as $wayPoint) {
                 $wayPointModel = new Waypoint();
                 $wayPointModel->setAttributes([
                     "address" => $wayPoint['address'],
