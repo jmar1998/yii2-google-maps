@@ -35,8 +35,9 @@ Para instrucciones de instalación se puede consultar el link siguiente : [Docke
 ***Cambios Relevantes V2***
 1. Hubo una reformulación en el codigo para añadir la posibilidad de agregar mas de 26 paradas
 - La API Google maps no permite crear rutas con mas de 24 paradas (24 + 2 [origen y destino])
-- Para sobrepasar este problema se hacen varios pedidos y se juntan en el mapa
-2. Simplificado la manera de renderizar los marcadores
-3. Corregido el delete de un marcador
-4. Para disminuir la cantidad de pedidos se guarda en la base de datos el pedido original (comprimido)
+- Para sobrepasar este problema se crean "chunks" de 26 paradas y hacemos 1 pedido por cada chunk, posteriormente se junta en el mapa siendo que el ultimo punto de cada "chunk" es el origen de cada bloque posterior
+2. Simplificacion de la manera de renderizar los marcadores
+3. Corregido el delete de los marcadores
+4. Para disminuir la cantidad de pedidos se guarda en la base de datos el pedido original
+- La información es posteriormente comprimida para disminuir el uso de memoria durante el guardado y espacio en la db
 - En nuestro caso es un array de pedidos para permitir varias rutas de +26 paradas

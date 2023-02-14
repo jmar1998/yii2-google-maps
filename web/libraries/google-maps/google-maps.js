@@ -20,9 +20,7 @@ class GoogleMap {
             center: { lat: 40.416775, lng: -3.703339 },
         });
         this.routeManager = new google.maps.DirectionsService();
-        if (markersElement) {
-            this.markersElement = markersElement;
-        }
+        this.markersElement = markersElement;
         this.initMarkerManager();
     }
     getData() {
@@ -62,6 +60,12 @@ class GoogleMap {
     emptyMap(){
         this.routeDrawer.setDirections({});
     }
+    /**
+     * Function to chunk waypoints
+     * Basically we do this to split the waypoints and do the requests by chunks
+     * @param {*} sourceWayPoints 
+     * @returns array
+     */
     chunkWayPoints(sourceWayPoints){
         let wayPoints = [];
         let index = -1;
@@ -85,25 +89,30 @@ class GoogleMap {
             object.setMap(null);
         });
         const wayPoints = Object.assign([], this.route.wayPoints);
+        // Clean the current data and setup if the data is given
         this.route.wayPoints = [];
         this.markerDirections = [];
         this.route.requests = existingDirections;
+        // Keep the renderers to get the markers
         const renderers = [];
-        console.log(wayPoints, this.chunkWayPoints(wayPoints));
         this.chunkWayPoints(wayPoints).reduce(async (previous, chunkWayPoints, index) => {
             const previousRequest = await previous;
             const startPoint = previousRequest.request.destination !== undefined ? previousRequest.request.destination.location : chunkWayPoints[0];
             const endPoint = chunkWayPoints[chunkWayPoints.length - 1];
-            const wayPoints = chunkWayPoints
+            const stopWayPoints = chunkWayPoints
                 .filter((marker) => marker !== startPoint && marker !== endPoint)
                 .map(marker => { return { location : marker } });
             let directions = null;
             const renderer = new google.maps.DirectionsRenderer({
                 draggable: true,
-                map : this.map
+                map : this.map,
+                markerOptions : {
+                    visible : false
+                }
             });
             renderers.push(renderer);
             this.route.objects.push(renderer);
+            // Check the cache on database
             if (this.route.requests[index] !== undefined) {
                 directions = this.route.requests[index];
             } else {
@@ -112,7 +121,7 @@ class GoogleMap {
                     destination : endPoint,
                     travelMode: google.maps.TravelMode.DRIVING,
                     provideRouteAlternatives: true,
-                    waypoints : wayPoints
+                    waypoints : stopWayPoints
                 });
                 this.route.requests.push(directions);
             }
@@ -128,6 +137,8 @@ class GoogleMap {
             request : {}
         })).then(() => {
             let markerIndex = 1;
+            // Get and update the markers
+            // We do it of this way because the marker is rendered more accurately from the renderer itself
             renderers.forEach((renderer) => {
                 // Because there is no current way to check if the markers are ready
                 // We manually check when the markers are loaded
@@ -137,11 +148,12 @@ class GoogleMap {
                         clearInterval(markersChecker);
                         renderer.h.markers.forEach((marker, index) => {
                             marker.setIcon(null);
-                            //When this condition is fullfilled means that is a segment from another request
+                            //When this condition is fullfilled means that is a segment from another request(route)
                             if(markerIndex > 1 && index == 0){
                                 marker.setVisible(false);
                                 return;
                             }
+                            marker.setVisible(true);
                             marker.setLabel({
                                 text : `${markerIndex++}`,
                                 color : 'white'
@@ -151,11 +163,19 @@ class GoogleMap {
                 }, 0);
             });
             this.renderMarkers();
-        })
+        }).catch(() => {
+            alert("Ruta invalida!");
+            // Filter the new data to rollback the information
+            this.route.wayPoints = wayPoints.filter((wayPoint) => !this.isLocationObject(wayPoint));
+            this.generateRoute();
+        });
     }
     toJSON(element){
-        if (element.constructor.name !== 'Object') return element.toJSON();
+        if (this.isLocationObject(element)) return element.toJSON();
         return element;
+    }
+    isLocationObject(element){
+        return element.constructor.name !== 'Object' && typeof element.lat == 'function' && typeof element.lng == 'function';
     }
    /**
     * We handle directions and transform it into a valid waypoints
@@ -181,6 +201,7 @@ class GoogleMap {
      * Function to render markers from left panel
      */
     renderMarkers(){
+        if (!this.markersElement)  return;
         $(this.markersElement).empty();
         const directions = this.getRouteDirections();
         const renderedMarkers = [];
@@ -199,7 +220,6 @@ class GoogleMap {
             deleteButton
                 .addClass("btn btn-danger btn-sm remove-marker")
                 .on("click", () => {
-                    console.log(this.route.wayPoints, route.location);
                     this.route.wayPoints = directions.filter((wayPoint) => {
                         return wayPoint.location.lat != route.location.lat || wayPoint.location.lng != route.location.lng;
                     }).map(wayPoint => wayPoint.location);
