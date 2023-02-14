@@ -41,3 +41,8 @@ Para instrucciones de instalación se puede consultar el link siguiente : [Docke
 4. Para disminuir la cantidad de pedidos se guarda en la base de datos el pedido original
 - La información es posteriormente comprimida para disminuir el uso de memoria durante el guardado y espacio en la db
 - En nuestro caso es un array de pedidos para permitir varias rutas de +26 paradas
+
+***Como actualizar la base de datos***
+> Ejecutando este comando puedes actualizar la estructura de la base de datos
+> `echo "y" | sudo docker compose exec php ./yii migrate/up`
+- Tambien puedes ejecutar `docker compose down && docker compose up`;
