@@ -46,7 +46,7 @@ Para instrucciones de instalación se puede consultar el link siguiente : [Docke
 1. Fueron agregadas 2 funciones
 - getDistanceHaversine : Esta función es usada para calcular los puntos mas relevantes para posteriormente comparar esos puntos con la api de google maps, esto para tambien reducir la cantidad de pedidos
 - compareLocations : Funcion principal de comparacion
-2. Fue optimizado la compresion y descompresion de las rutas, ya no es necesario cargar toda la informacion en el modelo
+2. Fue optimizado la compresion y descompresion de las rutas, ya no es necesario cargar toda la informacion en el modelo y la velocidad de carga fue incrementada en gran medida
 3. Nueva sección para compara rutas con puntos 
 - ![Explore](documentation-explore-p1.png)
 > Nota : es necesario ejecutar migrations
