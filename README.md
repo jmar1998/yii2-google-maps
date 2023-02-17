@@ -47,9 +47,9 @@ Para instrucciones de instalación se puede consultar el link siguiente : [Docke
 - getDistanceHaversine : Esta función es usada para calcular los puntos mas relevantes para posteriormente comparar esos puntos con la api de google maps, esto para tambien reducir la cantidad de pedidos
 - compareLocations : Funcion principal de comparacion
 2. Fue optimizado la compresion y descompresion de las rutas, ya no es necesario cargar toda la informacion en el modelo
+3. Nueva sección para compara rutas con puntos 
+- ![Explore](documentation-explore-p1.png)
 > Nota : es necesario ejecutar migrations
-3. Nueva sección 
-![Explore](documentation-explore-p1.png)
 ***Como actualizar la base de datos***
 > Ejecutando este comando puedes actualizar la estructura de la base de datos
 > `echo "y" | docker compose exec php ./yii migrate/up`
