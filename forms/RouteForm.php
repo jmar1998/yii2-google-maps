@@ -3,7 +3,6 @@
 namespace app\forms;
 
 use Exception;
-use yii\helpers\ArrayHelper;
 use Yii;
 use app\models\{
     Route,
@@ -51,6 +50,7 @@ class RouteForm extends \yii\base\Model
         return [
             [['name'], 'required'],
             [['name'], 'string'],
+            [['id'], 'integer'],
             [['sourceRequests', 'directions'], 'safe']
         ];
     }
@@ -64,12 +64,13 @@ class RouteForm extends \yii\base\Model
             'name' => 'Nombre',
         ];
     }
-    public function loadRoute(?int $route){
-        if($route === null){
+    public function loadRoute($route){
+        if(empty($route)){
             return;
         }
         /** @var Route */
         $route = Route::find()
+            ->select(["route.id", "name"])
             ->where(["route.id" => $route])
             ->innerJoinWith([
                 'waypoints' => function(ActiveQuery $query){
@@ -92,8 +93,9 @@ class RouteForm extends \yii\base\Model
                 "lng" => (float) $wayPoint['lng'],
             ];
         }, $route->waypoints));
+        return true;
         // Decompress when is needed
-        $this->sourceRequests = empty($route['source_requests']) ? null : gzuncompress(base64_decode($route['source_requests']));
+        // $this->sourceRequests = empty($route['source_requests']) ? null : base64_decode($route['source_requests']);
     }
     public function save(?int $route){
         $transaction = Yii::$app->db->beginTransaction();
@@ -102,7 +104,7 @@ class RouteForm extends \yii\base\Model
             $routeModel->setAttributes([
                 "name" => $this->name,
                 // We compress the data because this could be a huge string
-                "source_requests" => base64_encode(gzcompress($this->sourceRequests, 9))
+                "source_requests" => base64_encode(gzencode($this->sourceRequests, 9))
             ]);
             if(!$routeModel->save()){
                 throw new Exception("Error saving route model");
@@ -133,5 +135,8 @@ class RouteForm extends \yii\base\Model
             throw $e;
         }
         return false;
+    }
+    public function isLoaded() {
+        return !empty($this->id);
     }
 }
