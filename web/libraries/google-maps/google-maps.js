@@ -1,3 +1,4 @@
+
 class GoogleMap {
     route = {
         // Name of the route
@@ -5,9 +6,9 @@ class GoogleMap {
         // List of waypoints
         wayPoints: [],
         // Buffer of objects to cleanup
-        objects : [],
+        objects: [],
         // Array of requests
-        requests : []
+        requests: []
     };
     constructor(options) {
         const {
@@ -15,7 +16,7 @@ class GoogleMap {
         } = options;
         this.markerDirections = [];
         this.markerCallback = null;
-        this.distanceMatrixService = null;
+        this.distanceRenderer = null;
         this.map = new google.maps.Map(mapElement, {
             zoom: 8,
             // Center the map on spain
@@ -28,11 +29,11 @@ class GoogleMap {
     }
     getData() {
         return {
-            directions : this.getRouteDirections(),
-            sourceRequests : this.route.requests
+            directions: this.getRouteDirections(),
+            sourceRequests: this.route.requests
         };
     }
-    setMarkerCallback(markerCallback){
+    setMarkerCallback(markerCallback) {
         this.markerCallback = markerCallback;
     }
     /**
@@ -52,20 +53,20 @@ class GoogleMap {
             this.getTravel().push(event.latLng);
         });
     }
-    getMapMarker(location, markerIndex, markerOptions = {}){
+    getMapMarker(location, markerIndex, markerOptions = {}) {
         return new google.maps.Marker({
             ...markerOptions,
             position: location,
-            label : {
-                text : `${markerIndex + 1}`,
-                color : 'white'
+            label: {
+                text: `${markerIndex + 1}`,
+                color: 'white'
             }
         });
     }
     /**
      * Function to clean the map
      */
-    emptyMap(){
+    emptyMap() {
         this.routeDrawer.setDirections({});
     }
     /**
@@ -74,7 +75,7 @@ class GoogleMap {
      * @param {*} sourceWayPoints 
      * @returns array
      */
-    chunkWayPoints(sourceWayPoints){
+    chunkWayPoints(sourceWayPoints) {
         let wayPoints = [];
         let index = -1;
         let counter = 0;
@@ -92,7 +93,7 @@ class GoogleMap {
     /**
      * Function to render the waypoints as a directions
      */
-    generateRoute(existingDirections = []){
+    generateRoute(existingDirections = []) {
         this.route.objects.forEach((object) => {
             object.setMap(null);
         });
@@ -109,12 +110,12 @@ class GoogleMap {
             const endPoint = chunkWayPoints[chunkWayPoints.length - 1];
             const stopWayPoints = chunkWayPoints
                 .filter((marker) => marker !== startPoint && marker !== endPoint)
-                .map(marker => { return { location : marker } });
+                .map(marker => { return { location: marker } });
             let directions = null;
             const renderer = new google.maps.DirectionsRenderer({
-                map : this.map,
-                markerOptions : {
-                    visible : false
+                map: this.map,
+                markerOptions: {
+                    visible: false
                 }
             });
             renderers.push(renderer);
@@ -124,24 +125,24 @@ class GoogleMap {
                 directions = this.route.requests[index];
             } else {
                 directions = await this.routeManager.route({
-                    origin : startPoint,
-                    destination : endPoint,
+                    origin: startPoint,
+                    destination: endPoint,
                     travelMode: google.maps.TravelMode.DRIVING,
                     provideRouteAlternatives: true,
-                    waypoints : stopWayPoints
+                    waypoints: stopWayPoints
                 });
                 this.route.requests.push(directions);
             }
             renderer.setDirections(directions);
             this.markerDirections = this.markerDirections.concat(directions.routes[0].legs);
-            if(previousRequest.request.destination === undefined){
+            if (previousRequest.request.destination === undefined) {
                 this.getTravel().push(this.toJSON(directions.request.origin.location));
             }
             this.setTravel(this.getTravel().concat(directions.request.waypoints.map((waypoint) => this.toJSON(waypoint.location.location))));
             this.getTravel().push(this.toJSON(directions.request.destination.location));
             return directions;
         }, Promise.resolve({
-            request : {}
+            request: {}
         })).then(() => {
             let markerIndex = 1;
             // Get and update the markers
@@ -151,20 +152,20 @@ class GoogleMap {
                 // We manually check when the markers are loaded
                 // This is done, this way to the markers be more accurate
                 const markersChecker = setInterval(() => {
-                    if(renderer.h && renderer.h.markers){
+                    if (renderer.h && renderer.h.markers) {
                         clearInterval(markersChecker);
                         renderer.h.markers.forEach((marker, index) => {
                             // console.log(marker.getPosition().toJSON());
                             marker.setIcon(null);
                             //When this condition is fullfilled means that is a segment from another request(route)
-                            if(markerIndex > 1 && index == 0){
+                            if (markerIndex > 1 && index == 0) {
                                 marker.setVisible(false);
                                 return;
                             }
                             marker.setVisible(true);
                             marker.setLabel({
-                                text : `${markerIndex++}`,
-                                color : 'white'
+                                text: `${markerIndex++}`,
+                                color: 'white'
                             });
                         });
                     }
@@ -178,37 +179,37 @@ class GoogleMap {
             this.generateRoute();
         });
     }
-    toJSON(element){
+    toJSON(element) {
         if (this.isLocationObject(element)) return element.toJSON();
         return element;
     }
-    isLocationObject(element){
+    isLocationObject(element) {
         return element.constructor.name !== 'Object' && typeof element.lat == 'function' && typeof element.lng == 'function';
     }
-   /**
-    * We handle directions and transform it into a valid waypoints
-    */
-    getRouteDirections(){
+    /**
+     * We handle directions and transform it into a valid waypoints
+     */
+    getRouteDirections() {
         const directions = this.markerDirections;
         const directionsNb = directions.length - 1;
         const markers = [];
         for (const key in directions) {
             const element = directions[key];
-            const targets = key == directionsNb ? ['start', 'end'] :  ['start'];
+            const targets = key == directionsNb ? ['start', 'end'] : ['start'];
             targets.forEach((target) => {
                 markers.push({
-                    address : element[`${target}_address`],
-                    distanceToNextPoint : key == directionsNb && target == 'end' ? null : element.distance,
-                    location : this.toJSON(element[`${target}_location`])
+                    address: element[`${target}_address`],
+                    distanceToNextPoint: key == directionsNb && target == 'end' ? null : element.distance,
+                    location: this.toJSON(element[`${target}_location`])
                 })
             });
         };
         return markers;
     }
-    setTravel(directions){
+    setTravel(directions) {
         this.route.wayPoints = directions;
     }
-    getTravel(){
+    getTravel() {
         return this.route.wayPoints;
     }
     /**
@@ -218,7 +219,7 @@ class GoogleMap {
      * @param {*} positionB 
      * @returns 
      */
-    getDistanceHaversine(positionA, positionB){
+    getDistanceHaversine(positionA, positionB) {
         // Ref : https://en.wikipedia.org/wiki/Haversine_formula#Formulation
         const earthRadius = 6371;
         const lat1 = positionA.lat * Math.PI / 180;
@@ -228,86 +229,51 @@ class GoogleMap {
         const latitudeExpression = Math.pow(Math.sin((lat1 - lat2) / 2), 2);
         const longitudeExpression = Math.pow(Math.sin((lng1 - lng2) / 2), 2);
         return 2 * earthRadius * Math.asin(
-            Math.sqrt(latitudeExpression + (Math.cos(lat1) * Math.cos(lat2)) * longitudeExpression) 
+            Math.sqrt(latitudeExpression + (Math.cos(lat1) * Math.cos(lat2)) * longitudeExpression)
         );
-    }
-    getClosestFromMatrix(destinations, matrixResponse){
-        // We need the index of lowest distance, it can be the index because the matrixDistance gives the result in the same order
-        // We assume the first is the closest
-        let lowestDistance = matrixResponse[0];
-        let matchIndex = 0;
-        for (let index = 0; index < matrixResponse.length; index++) {
-            const element = matrixResponse[index];
-            if (element.distance.value < lowestDistance.distance.value ) {
-                matchIndex = index;
-            }
-        }
-        return {
-            location : destinations[matchIndex].location,
-            matrixData : matrixResponse[matchIndex]
-        };
     }
     /**
      * Function to compare locations from current travel with a given marker position
      */
-    compareLocations(marker){
-        if (!this.distanceMatrixService) {
-            this.distanceMatrixService = {
-                request : new google.maps.DistanceMatrixService,
-                renderer : new google.maps.DirectionsRenderer({
-                    draggable: true,
-                    map : this.map,
-                    polylineOptions : {
-                        strokeColor : "#6610f2"
-                    },
-                    markerOptions : {
-                        visible : false
-                    }
+    compareLocations(marker) {
+        if (!this.distanceRenderer) {
+            this.distanceRenderer = {
+                polyline: new google.maps.Polyline({
+                    geodesic: true,
+                    strokeColor: "#6610f2",
+                    visible: false,
+                    strokeOpacity: 0.5,
+                    strokeWeight: 4,
+                    map: this.map
+                }),
+                text: new DistanceOverlay({
+                    map: this.map
                 })
             };
         }
         const wayPoints = Object.assign([], this.getTravel());
         const selectedPosition = marker.toJSON();
-        const wayPointsDistanceMap = wayPoints.map((wayPoint) => {
+        const closestLocation = wayPoints.map((wayPoint) => {
             return {
-                location : wayPoint,
-                distanceToRef : this.getDistanceHaversine(wayPoint, selectedPosition)
+                location: wayPoint,
+                distanceToRef: this.getDistanceHaversine(wayPoint, selectedPosition)
             }
         }).sort((positionA, positionB) => {
             //Sort by distance
             return positionA.distanceToRef - positionB.distanceToRef;
-            // Get closests 10 destinations to the ref point
-        }).slice(0, 10);
-        return new Promise((resolve) => {
-            this.distanceMatrixService.request.getDistanceMatrix({
-                origins : [marker],
-                destinations : wayPointsDistanceMap.map(wayPoint => wayPoint.location),
-                travelMode: google.maps.TravelMode.DRIVING
-            }).then((result) => {
-                // Get real closest
-                const closestLocation = this.getClosestFromMatrix(wayPointsDistanceMap, result.rows[0].elements);
-                this.routeManager.route({
-                    origin : marker,
-                    destination : closestLocation.location,
-                    travelMode: google.maps.TravelMode.DRIVING,
-                    avoidFerries : true,
-                }).then((directions) => {
-                    this.distanceMatrixService.renderer.setDirections(directions);
-                    resolve({
-                        routeInfo : closestLocation.matrixData,
-                        directions
-                    });
-                }).catch(() => {
-                    alert("Punto de referencia invalido");
-                });
-            })
-        });
+        })[0];
+        this.distanceRenderer.polyline.setPath([marker, closestLocation.location]);
+        this.distanceRenderer.polyline.setVisible(true);
+        const bounds = new google.maps.LatLngBounds(marker, closestLocation.location);
+        const distance = `${closestLocation.distanceToRef.toFixed(2)} Km`;
+        this.distanceRenderer.text.setDistance(distance, bounds);
+        return distance;
     }
     /**
      * Function to render markers from left panel
      */
-    renderMarkers(){
-        if (!this.markersElement)  return;
+    renderMarkers() {
+        if (!this.markersElement) return;
         $(this.markersElement).empty();
         const directions = this.getRouteDirections();
         const renderedMarkers = [];
@@ -319,7 +285,7 @@ class GoogleMap {
             }
             const placeText = $(`<span>${route.address}</span>`)
                 .addClass("text-truncate ps-2 d-inline-block")
-                .css({maxWidth : 'calc(100% - 30px)'})
+                .css({ maxWidth: 'calc(100% - 30px)' })
                 .attr("title", route.address);
             const placeItem = $(`<li></li>`);
             const deleteButton = $("<button>X</button>");

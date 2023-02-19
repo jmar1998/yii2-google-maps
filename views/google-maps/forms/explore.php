@@ -63,8 +63,6 @@ use yii\widgets\ActiveForm;
         <dl class="mb-0">
             <dt>Distancia</dt>
             <dd class="mb-0" id="distance"></dd>
-            <dt>Duración</dt>
-            <dd class="mb-0" id="duration"></dd>
         </dl>
     </div>
 </div>
@@ -78,11 +76,8 @@ use yii\widgets\ActiveForm;
             marker.setLabel(null);
             marker.setMap(googleMap.map);
             $("#ref-point").val(position);
-            googleMap.compareLocations(position).then((results) => {
-                updateStep(3);
-                $("#distance").text(results.routeInfo.distance.text);
-                $("#duration").text(results.routeInfo.duration.text);
-            });
+            updateStep(3);
+            $("#distance").text(googleMap.compareLocations(position));
             return false;
         });
     });

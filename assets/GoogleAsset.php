@@ -10,6 +10,7 @@ class GoogleAsset extends AssetBundle
     public $basePath = '@webroot';
     public $baseUrl = '@web';
     public $js = [
+        "libraries/google-maps/distance-overlay.js",
         "libraries/google-maps/google-maps.js",
     ];
     public $css = [
@@ -25,9 +26,9 @@ class GoogleAsset extends AssetBundle
             "https://maps.googleapis.com/maps/api/js?key=%s&callback=init&v=weekly&libraries=places&language=es",
             \Yii::$app->params['googleMapsKey']
         );
-        $this->js = array_merge($this->js, [
-            [$googleMapsUrl, "defer" => true]
-        ]);
+        $this->js = array_merge([
+            [$googleMapsUrl]
+        ], $this->js);
         parent::init();
     }
 }
