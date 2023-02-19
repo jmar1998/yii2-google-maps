@@ -235,7 +235,7 @@ class GoogleMap {
     /**
      * Function to compare locations from current travel with a given marker position
      */
-    compareLocations(marker) {
+    compareLocations(marker, byMarker = false) {
         if (!this.distanceRenderer) {
             this.distanceRenderer = {
                 polyline: new google.maps.Polyline({
@@ -251,7 +251,7 @@ class GoogleMap {
                 })
             };
         }
-        const wayPoints = Object.assign([], this.getTravel());
+        const wayPoints = byMarker ? Object.assign([], this.getTravel()) : this.getTravelPoints();
         const selectedPosition = marker.toJSON();
         const closestLocation = wayPoints.map((wayPoint) => {
             return {
@@ -268,6 +268,13 @@ class GoogleMap {
         const distance = `${closestLocation.distanceToRef.toFixed(2)} Km`;
         this.distanceRenderer.text.setDistance(distance, bounds);
         return distance;
+    }
+    getTravelPoints(){
+        let travelPoints = [];
+        this.route.requests.forEach((request) => {
+            travelPoints = travelPoints.concat(request.routes[0].overview_path);
+        });
+        return travelPoints;
     }
     /**
      * Function to render markers from left panel

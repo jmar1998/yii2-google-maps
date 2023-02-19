@@ -48,10 +48,18 @@ use yii\widgets\ActiveForm;
         Establezca un punto de referencia en el mapa
     </div>
     <div class="card-body p-0" style="display:none">
+        <div class="form-check form-check-inline">
+            <input class="form-check-input" checked id="per-distance" type="radio" name="refBehavior" value="0">
+            <label class="form-check-label" for="per-distance">Por distancia</label>
+        </div>
+        <div class="form-check form-check-inline">
+            <input class="form-check-input" id="per-stop" type="radio" name="refBehavior" value="1">
+            <label class="form-check-label" for="per-stop">Por parada</label>
+        </div>
         <?= $form->field($modelForm, 'refPoint')->textInput([
             "readonly" => true,
             "id" => "ref-point",
-            "class" => "rounded-0 form-control"
+            "class" => "m-1 form-control"
         ])->label(false) ?>
     </div>
 </div>
@@ -77,8 +85,12 @@ use yii\widgets\ActiveForm;
             marker.setMap(googleMap.map);
             $("#ref-point").val(position);
             updateStep(3);
-            $("#distance").text(googleMap.compareLocations(position));
+            $("#distance").text(googleMap.compareLocations(position, parseInt($("[name='refBehavior']:checked").val())));
             return false;
+        });
+        $("[name='refBehavior']").on("change", function(){
+            if(!marker) return;
+            $("#distance").text(googleMap.compareLocations(marker.getPosition(), parseInt($("[name='refBehavior']:checked").val())));
         });
     });
     
